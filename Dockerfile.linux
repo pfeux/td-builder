@@ -22,4 +22,4 @@ RUN ls -l /app/td/tdlib
 
 FROM alpine
 WORKDIR /app
-COPY --from=builder:/app/td/tdlib ./app
+COPY --from=builder /app/td/tdlib ./app
