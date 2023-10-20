@@ -19,7 +19,11 @@ sed -i 's/cmake --build build\/generate --target prepare_cross_compiling || exit
 sed -i 's/cmake --build build\/wasm --target td_wasm || exit 1/cmake --build build\/wasm --target td_wasm -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build build\/asmjs --target td_asmjs -- -j $(nproc) || exit 1/g' build-tdlib.sh
 
-chmod +x build-openssl.sh build-tdlib.sh
+sed -i '/npm install --no-save || exit 1/i npm install copy-webpack-plugin --save-dev' build-tdweb.sh
+sed -i 's/CleanWebpackPlugin({})/CleanWebpackPlugin({}),/' /app/td/example/web/tdweb/webpack.config.js
+sed -i '/new CleanWebpackPlugin({}),/a \    new CopyWebpackPlugin([\n      { from: path.resolve(__dirname, "src", "prebuilt") },\n    ]),' /app/td/example/web/tdweb/webpack.config.js
+
+chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh
 
 ./build-openssl.sh
 ./build-tdlib.sh
