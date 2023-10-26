@@ -9,5 +9,4 @@ RUN ./build-td-web.sh
 
 FROM alpine
 WORKDIR /app
-COPY --from=builder /app/td/example/web/tdweb/dist ./dist
-COPY --from=builder /app/td/example/web/tdweb/src ./src
+COPY --from=builder /app/td/example/web/tdweb ./tdweb
