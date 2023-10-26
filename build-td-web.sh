@@ -24,7 +24,7 @@ sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build b
 # sed -i '/const CleanWebpackPlugin = require('"'"'clean-webpack-plugin'"'"');/a const CopyWebpackPlugin = require('"'"'copy-webpack-plugin'"'"');' /app/td/example/web/tdweb/webpack.config.js
 # sed -i '/new CleanWebpackPlugin({}),/a \    new CopyWebpackPlugin([\n      { from: path.resolve(__dirname, "src", "prebuilt"), to: path.resolve(__dirname, "dist", "prebuilt") },\n    ]),' /app/td/example/web/tdweb/webpack.config.js
 
-sed -i '/npm run build || exit 1/a npm pack --pack-destination dist' build-tdweb.sh
+sed -i '/npm run build || exit 1/a npm pack' build-tdweb.sh
 
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh
 
