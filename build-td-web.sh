@@ -19,10 +19,12 @@ sed -i 's/cmake --build build\/generate --target prepare_cross_compiling || exit
 sed -i 's/cmake --build build\/wasm --target td_wasm || exit 1/cmake --build build\/wasm --target td_wasm -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build build\/asmjs --target td_asmjs -- -j $(nproc) || exit 1/g' build-tdlib.sh
 
-sed -i '/"clean-webpack-plugin": "^2.0.1",/a \ \ "copy-webpack-plugin": "^5.0.5",' /app/td/example/web/tdweb/package.json
-sed -i 's/CleanWebpackPlugin({})/CleanWebpackPlugin({}),/' /app/td/example/web/tdweb/webpack.config.js
-sed -i '/const CleanWebpackPlugin = require('"'"'clean-webpack-plugin'"'"');/a const CopyWebpackPlugin = require('"'"'copy-webpack-plugin'"'"');' /app/td/example/web/tdweb/webpack.config.js
-sed -i '/new CleanWebpackPlugin({}),/a \    new CopyWebpackPlugin([\n      { from: path.resolve(__dirname, "src", "prebuilt"), to: path.resolve(__dirname, "dist", "prebuilt") },\n    ]),' /app/td/example/web/tdweb/webpack.config.js
+# sed -i '/"clean-webpack-plugin": "^2.0.1",/a \ \ "copy-webpack-plugin": "^5.0.5",' /app/td/example/web/tdweb/package.json
+# sed -i 's/CleanWebpackPlugin({})/CleanWebpackPlugin({}),/' /app/td/example/web/tdweb/webpack.config.js
+# sed -i '/const CleanWebpackPlugin = require('"'"'clean-webpack-plugin'"'"');/a const CopyWebpackPlugin = require('"'"'copy-webpack-plugin'"'"');' /app/td/example/web/tdweb/webpack.config.js
+# sed -i '/new CleanWebpackPlugin({}),/a \    new CopyWebpackPlugin([\n      { from: path.resolve(__dirname, "src", "prebuilt"), to: path.resolve(__dirname, "dist", "prebuilt") },\n    ]),' /app/td/example/web/tdweb/webpack.config.js
+
+sed -i '/npm run build || exit 1/a npm pack --pack-destination dist' build-tdweb.sh
 
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh
 
