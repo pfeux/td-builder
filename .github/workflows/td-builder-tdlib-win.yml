@@ -1,0 +1,17 @@
+name: tdbuilder for tdlib for windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: |
+        docker build . --file Dockerfile.windows-tdlib --tag ttl.sh/tdbuilder-tdlib-win:24h
+        docker push ttl.sh/tdbuilder-tdlib-win:24h
