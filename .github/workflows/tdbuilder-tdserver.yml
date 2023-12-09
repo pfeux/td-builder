@@ -1,4 +1,4 @@
-name: tdbuilder for tdweb
+name: tdbuilder for tdserver
 
 on:
   workflow_dispatch:
