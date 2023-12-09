@@ -1,0 +1,12 @@
+FROM ubuntu as builder
+
+WORKDIR /app
+
+COPY build-td-server.sh /app/build-td-server.sh
+RUN sed -i -e 's/\r$//' /app/build-td-server.sh
+RUN chmod +x build-td-server.sh
+RUN ./build-td-server.sh
+
+FROM alpine
+WORKDIR /app
+COPY --from=builder /app/telegram-bot-api/bin ./td-server
