@@ -39,8 +39,8 @@ WORKDIR /app/td
 RUN git clone https://github.com/Microsoft/vcpkg.git
 WORKDIR /app/td/vcpkg
 
-RUN .\bootstrap-vcpkg.bat
-RUN vcpkg.exe install gperf:x64-windows openssl:x64-windows zlib:x64-windows
+RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\bootstrap-vcpkg.bat
+RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\vcpkg.exe -ArgumentList 'install', 'gperf:x64-windows', 'openssl:x64-windows', 'zlib:x64-windows'
 
 WORKDIR /app/td
 RUN mkdir build
