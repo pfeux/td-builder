@@ -1,0 +1,57 @@
+# escape=`
+
+# Copyright (C) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT license. See LICENSE.txt in the project root for license information.
+
+ARG FROM_IMAGE=mcr.microsoft.com/dotnet/framework/runtime:4.8
+FROM ${FROM_IMAGE} AS builder
+
+# Reset the shell.
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Set up environment to collect install errors.
+COPY Install.cmd C:\TEMP\
+RUN Invoke-WebRequest -Uri https://aka.ms/vscollect.exe -OutFile C:\TEMP\collect.exe -Verbose
+
+# Install Node.js LTS
+RUN Invoke-WebRequest -Uri https://nodejs.org/dist/v8.11.3/node-v8.11.3-x64.msi -OutFile C:\TEMP\node-install.msi -Verbose
+RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath msiexec.exe -ArgumentList '/i', 'C:\TEMP\node-install.msi', '/l*vx', '"%TEMP%\MSI-node-install.log"', '/qn', 'ADDLOCAL=ALL' | Out-Host
+
+# Download channel for fixed install.
+ARG CHANNEL_URL=https://aka.ms/vs/17/release/channel
+RUN Invoke-WebRequest -Uri $env:CHANNEL_URL -OutFile C:\TEMP\VisualStudio.chman -Verbose
+
+# Download and install Build Tools for Visual Studio 2022 for native desktop workload.
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile C:\TEMP\vs_buildtools.exe -Verbose
+
+# Install VC Build Tools
+RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\TEMP\vs_buildtools.exe -ArgumentList '--quiet', '--wait', '--norestart', '--nocache', '--channelUri', 'C:\TEMP\VisualStudio.chman', '--installChannelUri', 'C:\TEMP\VisualStudio.chman', '--add', 'Microsoft.VisualStudio.Workload.VCTools', '--includeRecommended' | Out-Host
+
+WORKDIR /app
+
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+RUN choco install git -y
+RUN choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+
+RUN git clone https://github.com/tdlib/td.git
+WORKDIR /app/td
+
+RUN git clone https://github.com/Microsoft/vcpkg.git
+WORKDIR /app/td/vcpkg
+
+RUN bootstrap-vcpkg.bat
+RUN vcpkg.exe install gperf:x64-windows openssl:x64-windows zlib:x64-windows
+
+WORKDIR /app/td
+RUN mkdir build
+WORKDIR /app/td/build
+
+RUN cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
+RUN cmake --build . --target install --config Release
+
+WORKDIR /app/td
+RUN dir tdlib
+
+FROM alpine
+WORKDIR /app
+COPY --from=builder /app/td/tdlib ./tdlib
