@@ -24,9 +24,9 @@ RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\TEMP\vs_buildtools.e
 
 WORKDIR /app
 
-# RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-# RUN choco install git -y
-# RUN choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+RUN choco install git -y
+RUN choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
 
 RUN git clone https://github.com/tdlib/td.git
 WORKDIR /app/td
