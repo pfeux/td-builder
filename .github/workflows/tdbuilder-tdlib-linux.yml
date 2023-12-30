@@ -1,0 +1,17 @@
+name: tdbuilder for tdlib for linux
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: |
+        docker build -t ttl.sh/tdlib-linux:24h -f Dockerfile.tdlib-linux .
+        docker push ttl.sh/tdlib-linux:24h
