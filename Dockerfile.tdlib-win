@@ -9,9 +9,6 @@ FROM ${FROM_IMAGE} AS builder
 # Reset the shell.
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-# Set up environment to collect install errors.
-COPY myconfig.vsconfig C:\TEMP\
-
 # Download channel for fixed install.
 ARG CHANNEL_URL=https://aka.ms/vs/17/release/channel
 RUN Invoke-WebRequest -Uri $env:CHANNEL_URL -OutFile C:\TEMP\VisualStudio.chman -Verbose
@@ -68,6 +65,6 @@ RUN cmake --build . --target install --config Release
 WORKDIR /app/td
 RUN dir tdlib
 
-FROM alpine
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
 WORKDIR /app
 COPY --from=builder /app/td/tdlib ./tdlib
