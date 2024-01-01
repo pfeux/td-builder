@@ -1,8 +1,5 @@
 # escape=`
 
-# Copyright (C) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT license. See LICENSE.txt in the project root for license information.
-
 ARG FROM_IMAGE=mcr.microsoft.com/dotnet/framework/runtime:4.8
 FROM ${FROM_IMAGE} AS builder
 

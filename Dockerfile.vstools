@@ -1,3 +1,5 @@
+# escape=`
+
 ARG FROM_IMAGE=mcr.microsoft.com/dotnet/framework/runtime:4.8
 FROM ${FROM_IMAGE} AS builder
 
