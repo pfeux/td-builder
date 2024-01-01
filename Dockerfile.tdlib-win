@@ -41,7 +41,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/channel -OutFile C:\TEMP
 # Install additional tools
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
-    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) && `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')); `
     choco install git cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
 
 # Clone the repositories
