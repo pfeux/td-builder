@@ -1,0 +1,40 @@
+ARG FROM_IMAGE=mcr.microsoft.com/dotnet/framework/runtime:4.8
+FROM ${FROM_IMAGE} AS builder
+
+# Reset the shell.
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Changes the directory to TEMP
+WORKDIR /TEMP
+
+# Download channel & setup files, install VC Build Tools
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/channel -OutFile C:\TEMP\VisualStudio.chman -Verbose; `
+    Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile C:\TEMP\vs_buildtools.exe -Verbose; `
+    Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\TEMP\vs_buildtools.exe -ArgumentList '--quiet', '--wait', '--norestart', '--nocache', `
+    '--channelUri', 'C:\TEMP\VisualStudio.chman', '--installChannelUri', 'C:\TEMP\VisualStudio.chman', `
+    '--add', 'Microsoft.VisualStudio.Workload.VCTools', `
+    '--add', 'Microsoft.VisualStudio.Component.Roslyn.Compiler', `
+    '--add', 'Microsoft.Component.MSBuild', `
+    '--add', 'Microsoft.Net.Component.4.5.2.TargetingPack', `
+    '--add', 'Microsoft.Net.Component.4.7.2.TargetingPack', `
+    '--add', 'Microsoft.NetCore.Component.Runtime.8.0', `
+    '--add', 'Microsoft.NetCore.Component.SDK', `
+    '--add', 'Microsoft.NetCore.Component.Runtime.6.0', `
+    '--add', 'microsoft.net.runtime.mono.tooling', `
+    '--add', 'microsoft.net.runtime.mono.tooling.net7', `
+    '--add', 'Microsoft.VisualStudio.Component.MonoDebugger', `
+    '--add', 'Microsoft.VisualStudio.Component.Merq', `
+    '--add', 'Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions.TemplateEngine', `
+    '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64EC', `
+    '--add', 'Microsoft.VisualStudio.Component.UWP.VC.ARM64EC', `
+    '--add', 'Microsoft.Net.Component.3.5.DeveloperTools', `
+    '--add', 'Microsoft.NetCore.Component.Runtime.7.0', `
+    '--add', 'Microsoft.Net.Component.4.6.2.SDK', `
+    '--add', 'Microsoft.Net.Component.4.7.2.SDK', `
+    '--includeRecommended' | Out-Host
+
+# Install additional tools
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')); `
+    choco install git cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
