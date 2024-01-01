@@ -12,11 +12,9 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 # Changes the directory to TEMP
 WORKDIR /TEMP
 
-# Download channel for fixed install.
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/channel -OutFile C:\TEMP\VisualStudio.chman -Verbose
-
-# Download and install Build Tools for Visual Studio 2022 for native desktop workload.
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile C:\TEMP\vs_buildtools.exe -Verbose
+# Download channel & setup files.
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/channel -OutFile C:\TEMP\VisualStudio.chman -Verbose; `
+    Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile C:\TEMP\vs_buildtools.exe -Verbose
 
 # Install VC Build Tools
 RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\TEMP\vs_buildtools.exe -ArgumentList '--quiet', '--wait', '--norestart', '--nocache', `
@@ -44,25 +42,64 @@ RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\TEMP\vs_buildtools.e
 
 WORKDIR /app
 
-RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-RUN choco install git -y
-RUN choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')); `
+    choco install git -y; `
+    choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
 
-RUN git clone https://github.com/tdlib/td.git
-WORKDIR /app/td
+RUN git clone https://github.com/tdlib/td.git; `
+    cd td; `
+    git clone https://github.com/Microsoft/vcpkg.git
 
-RUN git clone https://github.com/Microsoft/vcpkg.git
 WORKDIR /app/td/vcpkg
-
-RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\bootstrap-vcpkg.bat
-RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\vcpkg.exe -ArgumentList 'install', 'gperf:x64-windows', 'openssl:x64-windows', 'zlib:x64-windows'
+RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\bootstrap-vcpkg.bat; `
+    Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\vcpkg.exe -ArgumentList 'install', 'gperf:x64-windows', 'openssl:x64-windows', 'zlib:x64-windows'`
+    Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\vcpkg.exe -ArgumentList 'install', 'gperf:x86-windows', 'openssl:x86-windows', 'zlib:x86-windows'
 
 WORKDIR /app/td
-RUN mkdir build
+RUN Remove-Item -LiteralPath "build" -Force -Recurse -ErrorAction SilentlyContinue; `
+    New-Item -ItemType Directory -Path "build"
 WORKDIR /app/td/build
 
-RUN cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
-RUN cmake --build . --target install --config Release
+RUN cmake -A x64 `
+    -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release `
+    -DTD_ENABLE_DOTNET=ON `
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..; `
+    cmake --build . --target install --config Release
+
+WORKDIR /app/td
+RUN Remove-Item -LiteralPath "build" -Force -Recurse -ErrorAction SilentlyContinue;` 
+    New-Item -ItemType Directory -Path "build"
+WORKDIR /app/td/build
+
+RUN cmake -A x64 `
+    -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Debug `
+    -DTD_ENABLE_DOTNET=ON `
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..; `
+    cmake --build . --target install --config Debug
+
+WORKDIR /app/td
+RUN Remove-Item -LiteralPath "build" -Force -Recurse -ErrorAction SilentlyContinue; `
+    New-Item -ItemType Directory -Path "build"
+WORKDIR /app/td/build
+
+RUN cmake -A Win32 `
+    -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x86/Release `
+    -DTD_ENABLE_DOTNET=ON `
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..; `
+    cmake --build . --target install --config Release
+
+WORKDIR /app/td
+RUN Remove-Item -LiteralPath "build" -Force -Recurse -ErrorAction SilentlyContinue;` 
+    New-Item -ItemType Directory -Path "build"
+WORKDIR /app/td/build
+
+RUN cmake -A Win32 `
+    -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x86/Debug `
+    -DTD_ENABLE_DOTNET=ON `
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..; `
+    cmake --build . --target install --config Debug
 
 WORKDIR /app/td
 RUN dir tdlib
