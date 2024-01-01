@@ -45,6 +45,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
     choco install git cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
 
 # Clone the repositories
+WORKDIR /app
 RUN git clone https://github.com/tdlib/td.git; `
     cd td; `
     git clone https://github.com/Microsoft/vcpkg.git
