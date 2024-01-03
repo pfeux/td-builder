@@ -10,8 +10,12 @@ git clone https://github.com/tdlib/td.git
 
 cd /app/td
 rm -rf build && mkdir build && cd build
+CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-14 CXX=/usr/bin/clang++-14 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Release -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-14 -DCMAKE_NM=/usr/bin/llvm-nm-14 -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-14 -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-14 ..
+cmake --build . --target install
 
-CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-14 CXX=/usr/bin/clang++-14 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-14 -DCMAKE_NM=/usr/bin/llvm-nm-14 -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-14 -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-14 ..
+cd /app/td
+rm -rf build && mkdir build && cd build
+CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-14 CXX=/usr/bin/clang++-14 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Debug -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-14 -DCMAKE_NM=/usr/bin/llvm-nm-14 -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-14 -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-14 ..
 cmake --build . --target install
 
 ls -alh /app/td/tdlib
