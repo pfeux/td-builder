@@ -28,4 +28,4 @@ jobs:
         context: .
         file: Dockerfile.tdserver
         push: true
-        tags: ghcr.io/${{ github.repository }}:latest
+        tags: ghcr.io/tdbuilder-tdserver:latest
