@@ -13,8 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: |
-        docker build . --file Dockerfile.tdserver --tag ttl.sh/tdbuilder-tdserver:24h
-        docker push ttl.sh/tdbuilder-tdserver:24h
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5.1.0
+      with:
+        context: .
+        # Path to the Dockerfile
+        file: Dockerfile.tdserver
+        push: true
+        tags: ghcr.io/${{ github.repository }}:latest
+        github-token: ${{ github.token }}
