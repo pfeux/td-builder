@@ -13,8 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: |
-        docker build -t ttl.sh/tdlib-linux:24h -f Dockerfile.tdlib-linux .
-        docker push ttl.sh/tdlib-linux:24h
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Docker Login
+      uses: docker/login-action@v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.TOKEN }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5.1.0
+      with:
+        context: .
+        file: Dockerfile.tdlib-linux
+        push: true
+        tags: ghcr.io/${{ github.actor }}/tdlib-linux:latest    
