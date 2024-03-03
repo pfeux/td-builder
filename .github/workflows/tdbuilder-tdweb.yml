@@ -10,8 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: |
-        docker build . --file Dockerfile.tdweb --tag ttl.sh/tdbuilder-tdweb:24h
-        docker push ttl.sh/tdbuilder-tdweb:24h
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Docker Login
+      uses: docker/login-action@v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.TOKEN }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5.1.0
+      with:
+        context: .
+        file: Dockerfile.tdweb
+        push: true
+        tags: ghcr.io/${{ github.actor }}/tdbuilder-tdweb:latest
