@@ -19,7 +19,7 @@ sed -i 's/cmake --build build\/generate --target prepare_cross_compiling || exit
 sed -i 's/cmake --build build\/wasm --target td_wasm || exit 1/cmake --build build\/wasm --target td_wasm -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build build\/asmjs --target td_asmjs -- -j $(nproc) || exit 1/g' build-tdlib.sh
 
-sed -i '/npm run build || exit 1/a npm pack' build-tdweb.sh
+# sed -i '/npm run build || exit 1/a npm pack' build-tdweb.sh
 
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh
 
