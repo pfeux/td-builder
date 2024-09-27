@@ -1,4 +1,4 @@
-FROM ubuntu:latest as builder
+FROM ubuntu as builder
 
 WORKDIR /app
 
