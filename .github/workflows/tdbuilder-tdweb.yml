@@ -1,7 +1,8 @@
 name: tdbuilder for tdweb
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 5'
 
 jobs:
 
