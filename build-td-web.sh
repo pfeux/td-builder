@@ -44,8 +44,9 @@ cd /app/td/example/web
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh copy-tdlib.sh
 
 export NODE_OPTIONS=--openssl-legacy-provider
+export $(grep -v '^#' /app/emsdk/emsdk_env.sh | sed 's/=.*//')
 
-source /app/emsdk/emsdk_env.sh && ./build-openssl.sh
-source /app/emsdk/emsdk_env.sh && ./build-tdlib.sh
-source /app/emsdk/emsdk_env.sh && ./copy-tdlib.sh
-source /app/emsdk/emsdk_env.sh && ./build-tdweb.sh
+./build-openssl.sh
+./build-tdlib.sh
+./copy-tdlib.sh
+./build-tdweb.sh
