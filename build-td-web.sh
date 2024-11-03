@@ -9,7 +9,7 @@ cd /app
 git clone https://github.com/tdlib/td.git && git clone https://github.com/emscripten-core/emsdk.git && cd /app/emsdk
 
 cd /app/emsdk
-./emsdk install latest && ./emsdk activate latest && echo 'source "/app/emsdk/emsdk_env.sh"' >> $HOME/.bash_profile && source $HOME/.bash_profile
+./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh
 
 cd /app/td/example/web
 
