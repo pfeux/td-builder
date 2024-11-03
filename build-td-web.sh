@@ -45,7 +45,7 @@ chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh copy-tdlib.sh
 
 export NODE_OPTIONS=--openssl-legacy-provider
 
-. ./build-openssl.sh
-. ./build-tdlib.sh
-. ./copy-tdlib.sh
-. ./build-tdweb.sh
+source /app/emsdk/emsdk_env.sh && ./build-openssl.sh
+source /app/emsdk/emsdk_env.sh && ./build-tdlib.sh
+source /app/emsdk/emsdk_env.sh && ./copy-tdlib.sh
+source /app/emsdk/emsdk_env.sh && ./build-tdweb.sh
