@@ -9,14 +9,14 @@ cd /app
 git clone https://github.com/tdlib/td.git && git clone https://github.com/emscripten-core/emsdk.git && cd /app/emsdk
 
 cd /app/emsdk
-./emsdk install latest && ./emsdk activate latest && source /app/emsdk/emsdk_env.sh
+./emsdk install latest && ./emsdk activate latest
 
 cd /app/td/example/web
-sed -i '1isource /app/emsdk/emsdk_env.sh' build-openssl.sh
+# sed -i '1isource /app/emsdk/emsdk_env.sh' build-openssl.sh
 sed -i 's/emmake make depend || exit 1/emmake make -j $(nproc) depend || exit 1/g' build-openssl.sh
 sed -i 's/emmake make -j 4 || exit 1/emmake make -j $(nproc) || exit 1/g' build-openssl.sh
 
-sed -i '1isource /app/emsdk/emsdk_env.sh' build-tdlib.sh
+# sed -i '1isource /app/emsdk/emsdk_env.sh' build-tdlib.sh
 sed -i 's/cmake --build build\/generate --target prepare_cross_compiling || exit 1/cmake --build build\/generate --target prepare_cross_compiling -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/wasm --target td_wasm || exit 1/cmake --build build\/wasm --target td_wasm -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build build\/asmjs --target td_asmjs -- -j $(nproc) || exit 1/g' build-tdlib.sh
@@ -45,6 +45,9 @@ cd /app/td/example/web
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh copy-tdlib.sh
 
 export NODE_OPTIONS=--openssl-legacy-provider
+
+source /app/emsdk/emsdk_env.sh
+export PATH="/app/emsdk:/app/emsdk/node/20.18.0_64bit/bin:/app/emsdk/upstream/emscripten:$PATH"
 
 ./build-openssl.sh
 ./build-tdlib.sh
