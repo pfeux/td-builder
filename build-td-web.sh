@@ -47,7 +47,8 @@ chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh copy-tdlib.sh
 export NODE_OPTIONS=--openssl-legacy-provider
 
 source /app/emsdk/emsdk_env.sh
-export PATH="/app/emsdk:/app/emsdk/node/20.18.0_64bit/bin:/app/emsdk/upstream/emscripten:$PATH"
+export PATH
+echo $PATH
 
 ./build-openssl.sh
 ./build-tdlib.sh
