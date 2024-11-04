@@ -13,12 +13,12 @@ cd /app/emsdk
 
 cd /app/td/example/web
 # sed -i '1isource /app/emsdk/emsdk_env.sh' build-openssl.sh
-sed -i.bak 's/emcc --check 2>&1 | grep -q ' 3.1.1 '/command -v emcc >/dev/null 2>&1 || { echo '\''emcc not found. Install emsdk and activate it. See instructions at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html.'\''; exit 1; }/' build-openssl.sh
+sed -i 's|emcc --check 2>&1 | grep -q " 3.1.1 " || { echo "emcc 3.1.1 check failed. Install emsdk and install and activate 3.1.1 tools. See instruction at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html."; exit 1; }|command -v emcc >/dev/null 2>&1 || { echo "emcc not found. Install emsdk and activate it. See instructions at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html."; exit 1; }|' build_openssl.sh
 sed -i 's/emmake make depend || exit 1/emmake make -j $(nproc) depend || exit 1/g' build-openssl.sh
 sed -i 's/emmake make -j 4 || exit 1/emmake make -j $(nproc) || exit 1/g' build-openssl.sh
 
 # sed -i '1isource /app/emsdk/emsdk_env.sh' build-tdlib.sh
-sed -i.bak 's/emcc --check 2>&1 | grep -q ' 3.1.1 '/command -v emcc >/dev/null 2>&1 || { echo '\''emcc not found. Install emsdk and activate it. See instructions at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html.'\''; exit 1; }/' build-tdlib.sh
+sed -i 's|emcc --check 2>&1 | grep -q " 3.1.1 " || { echo "emcc 3.1.1 check failed. Install emsdk and install and activate 3.1.1 tools. See instruction at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html."; exit 1; }|command -v emcc >/dev/null 2>&1 || { echo "emcc not found. Install emsdk and activate it. See instructions at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html."; exit 1; }|' build_tdlib.sh
 sed -i 's/cmake --build build\/generate --target prepare_cross_compiling || exit 1/cmake --build build\/generate --target prepare_cross_compiling -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/wasm --target td_wasm || exit 1/cmake --build build\/wasm --target td_wasm -- -j $(nproc) || exit 1/g' build-tdlib.sh
 sed -i 's/cmake --build build\/asmjs --target td_asmjs || exit 1/cmake --build build\/asmjs --target td_asmjs -- -j $(nproc) || exit 1/g' build-tdlib.sh
