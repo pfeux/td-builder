@@ -9,7 +9,7 @@ cd /app
 git clone https://github.com/tdlib/td.git && git clone https://github.com/emscripten-core/emsdk.git && cd /app/emsdk
 
 cd /app/emsdk
-./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh
+./emsdk install latest && ./emsdk activate latest && source /app/emsdk/emsdk_env.sh
 
 cd /app/td/example/web
 
@@ -44,7 +44,6 @@ cd /app/td/example/web
 chmod +x build-openssl.sh build-tdlib.sh build-tdweb.sh copy-tdlib.sh
 
 export NODE_OPTIONS=--openssl-legacy-provider
-export $(grep -v '^#' /app/emsdk/emsdk_env.sh | sed 's/=.*//')
 
 ./build-openssl.sh
 ./build-tdlib.sh
