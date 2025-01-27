@@ -17,21 +17,6 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/channel -OutFile C:\TEMP
     '--add', 'Microsoft.VisualStudio.Workload.VCTools', `
     '--add', 'Microsoft.VisualStudio.Component.Roslyn.Compiler', `
     '--add', 'Microsoft.Component.MSBuild', `
-    '--add', 'Microsoft.Net.Component.4.5.2.TargetingPack', `
-    '--add', 'Microsoft.Net.Component.4.7.2.TargetingPack', `
-    '--add', 'Microsoft.NetCore.Component.Runtime.8.0', `
-    '--add', 'Microsoft.NetCore.Component.SDK', `
-    '--add', 'Microsoft.NetCore.Component.Runtime.6.0', `
-    '--add', 'microsoft.net.runtime.mono.tooling', `
-    '--add', 'microsoft.net.runtime.mono.tooling.net7', `
-    '--add', 'Microsoft.VisualStudio.Component.MonoDebugger', `
-    '--add', 'Microsoft.VisualStudio.Component.Merq', `
-    '--add', 'Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions.TemplateEngine', `
-    '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64EC', `
-    '--add', 'Microsoft.VisualStudio.Component.UWP.VC.ARM64EC', `
-    '--add', 'Microsoft.Net.Component.3.5.DeveloperTools', `
-    '--add', 'Microsoft.NetCore.Component.Runtime.7.0', `
-    '--add', 'Microsoft.Net.Component.4.6.2.SDK', `
     '--add', 'Microsoft.Net.Component.4.7.2.SDK', `
     '--includeRecommended' | Out-Host
 
@@ -42,9 +27,9 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
     choco install git cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
 
 WORKDIR /app
-RUN git clone https://github.com/tdlib/td.git; `
+RUN git clone --depth 1 https://github.com/tdlib/td.git; `
     cd td; `
-    git clone https://github.com/Microsoft/vcpkg.git
+    git clone --depth 1 https://github.com/Microsoft/vcpkg.git
 
 WORKDIR /app/td/vcpkg
 RUN Start-Process -Wait -NoNewWindow -PassThru -FilePath C:\app\td\vcpkg\bootstrap-vcpkg.bat; `
