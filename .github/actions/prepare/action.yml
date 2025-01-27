@@ -1,5 +1,9 @@
 name: 'Prepare Environment'
 description: 'Setup environment and download container image'
+inputs:
+  token:
+    description: 'Github token'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -8,5 +12,5 @@ runs:
 
     - name: Setup Container
       run: |
-        echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        echo "${{ inputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         docker pull ghcr.io/${{ github.actor }}/vstools:latest
