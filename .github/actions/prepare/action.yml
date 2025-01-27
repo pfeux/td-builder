@@ -1,0 +1,12 @@
+name: 'Prepare Environment'
+description: 'Setup environment and download container image'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Container
+      run: |
+        echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker pull ghcr.io/${{ github.actor }}/vstools:latest
