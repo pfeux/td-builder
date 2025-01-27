@@ -16,6 +16,8 @@ jobs:
       
     - name: Prepare environment
       uses: ./.github/actions/prepare
+      with:
+        token: ${{ secrets.TOKEN }}
 
   build_release_x64:
     runs-on: windows-latest
