@@ -18,12 +18,28 @@ jobs:
       run: |
         echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         docker pull ghcr.io/${{ github.actor }}/vstools:latest
+        docker save ghcr.io/${{ github.actor }}/vstools:latest -o vstools.tar
       shell: pwsh
+
+    - name: Upload Image Artifact
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: vstools-image
+        path: vstools.tar
 
   build_release_x64:
     runs-on: windows-latest
     needs: [prepare]
     steps:
+    - name: Download Image Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: vstools-image
+
+    - name: Load Docker Image
+      run: |
+        docker load -i vstools.tar
+        
     - name: Build release x64
       run: |
         docker run --rm -v ${{ github.workspace }}:/app -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
