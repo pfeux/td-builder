@@ -47,7 +47,7 @@ jobs:
       run: |
         $workspace = "${{ github.workspace }}".ToLower() -replace '\\', '/' -replace '^(\w):', '//$1'
         Write-Host ${{ github.workspace }}
-        # dir ${{ github.workspace }}
+        dir ${{ github.workspace }}
         # docker run --rm -v "$workspace/app" -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
         # cd /app/td;
         # git fetch;
