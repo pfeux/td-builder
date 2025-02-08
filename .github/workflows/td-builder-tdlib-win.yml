@@ -31,6 +31,9 @@ jobs:
     runs-on: windows-latest
     needs: [prepare]
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.2.2
+    
     - name: Download Image Artifact
       uses: actions/download-artifact@v4.1.8
       with:
@@ -43,22 +46,24 @@ jobs:
     - name: Build release x64
       run: |
         $workspace = "${{ github.workspace }}".ToLower() -replace '\\', '/' -replace '^(\w):', '//$1'
-        docker run --rm -v "$workspace/app" -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
-        cd /app/td;
-        git fetch;
-        git pull;
-        Remove-Item -LiteralPath "build-release-x64" -Force -Recurse -ErrorAction SilentlyContinue;
-        New-Item -ItemType Directory -Path "build-release-x64";
-        cd build-release-x64;
-        cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
-        cmake --build . --target install --config Release;
-        "
+        Write-Host ${{ github.workspace }}
+        # dir ${{ github.workspace }}
+        # docker run --rm -v "$workspace/app" -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
+        # cd /app/td;
+        # git fetch;
+        # git pull;
+        # Remove-Item -LiteralPath "build-release-x64" -Force -Recurse -ErrorAction SilentlyContinue;
+        # New-Item -ItemType Directory -Path "build-release-x64";
+        # cd build-release-x64;
+        # cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        # cmake --build . --target install --config Release;
+        # "
       shell: pwsh
-    - name: Publish the release x64 build
-      uses: actions/upload-artifact@v4.6.0
-      with:
-        name: build-release-x64
-        path: ${{ github.workspace }}/td/tdlib/x64/Release
+    # - name: Publish the release x64 build
+    #   uses: actions/upload-artifact@v4.6.0
+    #   with:
+    #     name: build-release-x64
+    #     path: ${{ github.workspace }}/td/tdlib/x64/Release
 
   # build_debug_x64:
   #   runs-on: windows-latest
