@@ -42,7 +42,7 @@ jobs:
         
     - name: Build release x64
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
+        docker run --rm -v "${{ github.workspace }}:/app" -w /app ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
         cd /app/td;
         git fetch;
         git pull;
