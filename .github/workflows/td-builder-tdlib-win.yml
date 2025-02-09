@@ -46,13 +46,14 @@ jobs:
     - name: Build release x64
       run: |
         docker run --rm -v "${{ github.workspace }}:C:\Host" ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
+        dir C:/Host
         cd /app/td;
         git fetch;
         git pull;
         Remove-Item -LiteralPath "build-release-x64" -Force -Recurse -ErrorAction SilentlyContinue;
         New-Item -ItemType Directory -Path "build-release-x64";
         cd build-release-x64;
-        cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=C:/Host/tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
         cmake --build . --target install --config Release;
         dir C:\Host
         "
