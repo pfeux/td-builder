@@ -47,19 +47,19 @@ jobs:
       run: |
         pwd
         dir "${{ github.workspace }}"
-        # docker run --rm -v "${{ github.workspace }}:C:\Host" ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
-        # pwd
-        # dir C:
-        # cd /app/td;
-        # git fetch;
-        # git pull;
-        # Remove-Item -LiteralPath "build-release-x64" -Force -Recurse -ErrorAction SilentlyContinue;
-        # New-Item -ItemType Directory -Path "build-release-x64";
-        # cd build-release-x64;
-        # cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
-        # cmake --build . --target install --config Release;
-        # dir C:\Host
-        # "
+        docker run --rm -v "${{ github.workspace }}:C:\Host" ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
+        pwd
+        dir C:
+        cd /app/td;
+        git fetch;
+        git pull;
+        Remove-Item -LiteralPath "build-release-x64" -Force -Recurse -ErrorAction SilentlyContinue;
+        New-Item -ItemType Directory -Path "build-release-x64";
+        cd build-release-x64;
+        cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        cmake --build . --target install --config Release;
+        dir C:\Host
+        "
       shell: pwsh
     # - name: Publish the release x64 build
     #   uses: actions/upload-artifact@v4.6.0
