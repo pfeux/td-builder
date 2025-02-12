@@ -45,11 +45,7 @@ jobs:
         
     - name: Build release x64
       run: |
-        pwd
-        dir "${{ github.workspace }}"
-        docker run --rm -v "${{ github.workspace }}:C:\Host" ghcr.io/${{ github.actor }}/vstools:latest pwsh -c "
-        pwd
-        dir C:
+        docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
         cd /app/td;
         git fetch;
         git pull;
