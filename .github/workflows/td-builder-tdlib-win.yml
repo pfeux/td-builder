@@ -55,8 +55,11 @@ jobs:
         cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
         cmake --build . --target install --config Release;
         "
-        ls ${{ github.workspace }}
       shell: pwsh
+
+    - name: List folder
+      run: dir "${{ github.workspace }}"
+      shell: cmd
     # - name: Publish the release x64 build
     #   uses: actions/upload-artifact@v4.6.0
     #   with:
