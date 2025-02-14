@@ -192,25 +192,25 @@ jobs:
       uses: actions/download-artifact@4.1.8
       with:
         name: build-release-x64
-        path: ${{ github.workspace }}
+        path: ${{ github.workspace }}/x64/Release
 
     - name: Download debug x64
       uses: actions/download-artifact@4.1.8
       with:
         name: build-debug-x64
-        path: ${{ github.workspace }}
+        path: ${{ github.workspace }}/x64/Debug
 
     - name: Download release x86
       uses: actions/download-artifact@4.1.8
       with:
         name: build-release-x86
-        path: ${{ github.workspace }}
+        path: ${{ github.workspace }}/x86/Release
 
     - name: Download debug x86
       uses: actions/download-artifact@4.1.8
       with:
         name: build-debug-x86
-        path: ${{ github.workspace }}
+        path: ${{ github.workspace }}/x86/Debug
 
     - name: Create folders and copy files from artifact
       run: |
@@ -219,7 +219,7 @@ jobs:
 
     - name: Clear all artifacts
       run: |
-        $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json
+        $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json;
         
         if ($ARTIFACTS.artifacts.Count -eq 0) {
           Write-Host "No artifacts found."
