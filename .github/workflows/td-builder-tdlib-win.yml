@@ -60,11 +60,12 @@ jobs:
     - name: List folder
       run: dir "${{ github.workspace }}"
       shell: cmd
-    # - name: Publish the release x64 build
-    #   uses: actions/upload-artifact@v4.6.0
-    #   with:
-    #     name: build-release-x64
-    #     path: ${{ github.workspace }}/td/tdlib/x64/Release
+      
+    - name: Publish the release x64 build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-release-x64
+        path: ${{ github.workspace }}/x64/Release
 
   # build_debug_x64:
   #   runs-on: windows-latest
