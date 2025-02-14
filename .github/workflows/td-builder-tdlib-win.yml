@@ -89,7 +89,7 @@ jobs:
         git pull;
         Remove-Item -LiteralPath "build-debug-x64" -Force -Recurse -ErrorAction SilentlyContinue;
         New-Item -ItemType Directory -Path "build-debug-x64";
-        cd build-release-x64;
+        cd build-debug-x64;
         cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Debug -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
         cmake --build . --target install --config Debug;
         "
