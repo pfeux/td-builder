@@ -31,9 +31,7 @@ jobs:
     runs-on: windows-latest
     needs: [prepare]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.2.2
-    
+
     - name: Download Image Artifact
       uses: actions/download-artifact@v4.1.8
       with:
@@ -42,6 +40,7 @@ jobs:
     - name: Load Docker Image
       run: |
         docker load -i vstools.tar
+      shell: pwsh
         
     - name: Build release x64
       run: |
@@ -67,109 +66,168 @@ jobs:
         name: build-release-x64
         path: ${{ github.workspace }}/x64/Release
 
-  # build_debug_x64:
-  #   runs-on: windows-latest
-  #   needs: [prepare]
-  #   container: 
-  #     image: ghcr.io/${{ github.actor }}/vstools:latest
-  #   steps:
-  #   - name: Fetching latest changes of td
-  #     run: |
-  #       cd "/app/td"
-  #       git fetch
-  #       git pull
-  #   - name: Build debug x64
-  #     run: |
-  #       cd "/app/td"
-  #       Remove-Item -LiteralPath "build-debug-x64" -Force -Recurse -ErrorAction SilentlyContinue
-  #       New-Item -ItemType Directory -Path "build-debug-x64"
-  #       cd build-release-x64
-  #       cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Debug -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
-  #       cmake --build . --target install --config Debug
-  #     shell: pwsh
-  #   - name: Publish the debug x64 build
-  #     uses: actions/upload-artifact@v4.6.0
-  #     with:
-  #       name: build-debug-x64
-  #       path: /app/td/tdlib/x64/Debug
+  build_debug_x64:
+    runs-on: windows-latest
+    needs: [prepare]
+    steps:
+    
+    - name: Download Image Artifact
+      uses: actions/download-artifact@4.1.8
+      with:
+        name: vstools-image
+    
+    - name: Load Docker Image
+      run: |
+        docker load -i vstools.tar
+      shell: pwsh
 
-  # build_release_x86:
-  #   runs-on: windows-latest
-  #   needs: [prepare]
-  #   container: 
-  #     image: ghcr.io/${{ github.actor }}/vstools:latest
-  #   steps:
-  #   - name: Fetching latest changes of td
-  #     run: |
-  #       cd "/app/td"
-  #       git fetch
-  #       git pull
-  #   - name: Build release x86
-  #     run: |
-  #       cd "/app/td"
-  #       Remove-Item -LiteralPath "build-release-x86" -Force -Recurse -ErrorAction SilentlyContinue
-  #       New-Item -ItemType Directory -Path "build-release-x86"
-  #       cd build-release-x86
-  #       cmake -A Win32 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Win32/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
-  #       cmake --build . --target install --config Release
-  #     shell: pwsh
-  #   - name: Publish the release x86 build
-  #     uses: actions/upload-artifact@v4.6.0
-  #     with:
-  #       name: build-release-x86
-  #       path: /app/td/tdlib/x86/Release
+    - name: Build debug x64
+      run: |
+        docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+        cd /app/td;
+        git fetch;
+        git pull;
+        Remove-Item -LiteralPath "build-debug-x64" -Force -Recurse -ErrorAction SilentlyContinue;
+        New-Item -ItemType Directory -Path "build-debug-x64";
+        cd build-release-x64;
+        cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/x64/Debug -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        cmake --build . --target install --config Debug;
+        "
+      shell: pwsh
 
-  # build_debug_x86:
-  #   runs-on: windows-latest
-  #   needs: [prepare]
-  #   container: 
-  #     image: ghcr.io/${{ github.actor }}/vstools:latest
-  #   steps:
-  #   - name: Fetching latest changes of td
-  #     run: |
-  #       cd "/app/td"
-  #       git fetch
-  #       git pull
-  #   - name: Build debug x86
-  #     run: |
-  #       cd "/app/td"
-  #       Remove-Item -LiteralPath "build-debug-x86" -Force -Recurse -ErrorAction SilentlyContinue
-  #       New-Item -ItemType Directory -Path "build-debug-x86"
-  #       cd build-debug-x86
-  #       cmake -A Win32 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Win32/Debug -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
-  #       cmake --build . --target install --config Debug
-  #     shell: pwsh
-  #   - name: Publish the debug x86 build
-  #     uses: actions/upload-artifact@v4.6.0
-  #     with:
-  #       name: build-debug-x86
-  #       path: /app/td/tdlib/x86/Debug
+    - name: List folder
+      run: dir "${{ github.workspace }}"
+      shell: cmd
 
-  # final_step:
-  #   runs-on: windows-latest
-  #   needs: [build_release_x64, build_debug_x64, build_release_x86, build_debug_x86]
-  #   steps:
-  #   - name: Download release x64
-  #     uses: actions/download-artifact@4.1.8
-  #     with:
-  #       name: build-release-x64
-  #       path: $GITHUB_WORKSPACE
-  #   - name: Download debug x64
-  #     uses: actions/download-artifact@4.1.8
-  #     with:
-  #       name: build-debug-x64
-  #       path: $GITHUB_WORKSPACE
-  #   - name: Download release x86
-  #     uses: actions/download-artifact@4.1.8
-  #     with:
-  #       name: build-release-x86
-  #       path: $GITHUB_WORKSPACE
-  #   - name: Download debug x86
-  #     uses: actions/download-artifact@4.1.8
-  #     with:
-  #       name: build-debug-x86
-  #       path: $GITHUB_WORKSPACE
-  #   - name: Create folders and copy files from artifact
-  #     run: |
-  #       ls $GITHUB_WORKSPACE
-  #     shell: pwsh
+    - name: Publish the debug x64 build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-debug-x64
+        path: ${{ github.workspace }}/x64/Debug
+
+  build_release_x86:
+    runs-on: windows-latest
+    needs: [prepare]
+    steps:
+
+    - name: Download Image Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: vstools-image
+
+    - name: Load Docker Image
+      run: |
+        docker load -i vstools.tar
+      shell: pwsh
+
+    - name: Build release x86
+      run: |
+        docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+        cd /app/td;
+        git fetch;
+        git pull;
+        Remove-Item -LiteralPath "build-release-x86" -Force -Recurse -ErrorAction SilentlyContinue;
+        New-Item -ItemType Directory -Path "build-release-x86";
+        cd build-release-x86;
+        cmake -A Win32 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Win32/Release -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        cmake --build . --target install --config Release;
+        "
+      shell: pwsh
+
+    - name: List folder
+      run: dir "${{ github.workspace }}"
+      shell: cmd
+
+    - name: Publish the release x86 build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-release-x86
+        path: ${{ github.workspace }}/x86/Release
+
+  build_debug_x86:
+    runs-on: windows-latest
+    needs: [prepare]
+    steps:
+
+    - name: Download Image Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: vstools-image
+
+    - name: Load Docker Image
+      run: |
+        docker load -i vstools.tar
+      shell: pwsh
+
+    - name: Build debug x86
+      run: |
+        docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+        cd /app/td;
+        git fetch;
+        git pull;
+        Remove-Item -LiteralPath "build-debug-x86" -Force -Recurse -ErrorAction SilentlyContinue;
+        New-Item -ItemType Directory -Path "build-debug-x86";
+        cd build-debug-x86;
+        cmake -A Win32 -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Win32/Debug -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+        cmake --build . --target install --config Debug;
+        "
+      shell: pwsh
+
+    - name: List folder
+      run: dir "${{ github.workspace }}"
+      shell: cmd
+
+    - name: Publish the debug x86 build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-debug-x86
+        path: ${{ github.workspace }}/x86/Debug
+
+  final_step:
+    runs-on: windows-latest
+    needs: [build_release_x64, build_debug_x64, build_release_x86, build_debug_x86]
+    steps:
+
+    - name: Download release x64
+      uses: actions/download-artifact@4.1.8
+      with:
+        name: build-release-x64
+        path: ${{ github.workspace }}
+
+    - name: Download debug x64
+      uses: actions/download-artifact@4.1.8
+      with:
+        name: build-debug-x64
+        path: ${{ github.workspace }}
+
+    - name: Download release x86
+      uses: actions/download-artifact@4.1.8
+      with:
+        name: build-release-x86
+        path: ${{ github.workspace }}
+
+    - name: Download debug x86
+      uses: actions/download-artifact@4.1.8
+      with:
+        name: build-debug-x86
+        path: ${{ github.workspace }}
+
+    - name: Create folders and copy files from artifact
+      run: |
+        ls ${{ github.workspace }}
+      shell: pwsh
+
+    - name: Clear all artifacts
+      run: |
+        $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json
+        
+        if ($ARTIFACTS.artifacts.Count -eq 0) {
+          Write-Host "No artifacts found."
+          exit 0
+        }
+        
+        foreach ($ARTIFACT in $ARTIFACTS.artifacts) {
+          gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($ARTIFACT.id)
+          Write-Host "Deleted artifact: $($ARTIFACT.name) (ID: $($ARTIFACT.id))"
+        }
+      shell: pwsh
