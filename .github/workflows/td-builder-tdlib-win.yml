@@ -192,42 +192,69 @@ jobs:
       uses: actions/download-artifact@4.1.8
       with:
         name: build-release-x64
-        path: ${{ github.workspace }}/x64/Release
+        path: ${{ github.workspace }}/tdlib/x64/Release
 
     - name: Download debug x64
       uses: actions/download-artifact@4.1.8
       with:
         name: build-debug-x64
-        path: ${{ github.workspace }}/x64/Debug
+        path: ${{ github.workspace }}/tdlib/x64/Debug
 
     - name: Download release x86
       uses: actions/download-artifact@4.1.8
       with:
         name: build-release-x86
-        path: ${{ github.workspace }}/x86/Release
+        path: ${{ github.workspace }}/tdlib/x86/Release
 
     - name: Download debug x86
       uses: actions/download-artifact@4.1.8
       with:
         name: build-debug-x86
-        path: ${{ github.workspace }}/x86/Debug
+        path: ${{ github.workspace }}/tdlib/x86/Debug
 
     - name: Create folders and copy files from artifact
       run: |
         ls ${{ github.workspace }}
       shell: pwsh
 
+    - name: Create docker
+      run: |
+        $dockerfileContent = @"
+        FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
+        WORKDIR /app
+        COPY ./tdlib ./tdlib
+        "@
+
+        $dockerfilePath = "${{ github.workspace }}/Dockerfile"
+
+        $dockerfileContent | Out-File -FilePath $dockerfilePath
+      shell: pwsh
+
+    - name: Build final Docker
+      uses: docker/login-action@v3.3.0
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.TOKEN }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v6.13.0
+      with:
+        context: .
+        file: Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.actor }}/tdlib-win:latest
+
+  clean_artifacts:
+    runs-on: windows-latest
+    needs: [final_step]
+    steps:
+
     - name: Clear all artifacts
       run: |
-        $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json;
-        
-        if ($ARTIFACTS.artifacts.Count -eq 0) {
-          Write-Host "No artifacts found."
-          exit 0
-        }
-        
-        foreach ($ARTIFACT in $ARTIFACTS.artifacts) {
-          gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($ARTIFACT.id)
-          Write-Host "Deleted artifact: $($ARTIFACT.name) (ID: $($ARTIFACT.id))"
-        }
+        gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json |
+          ForEach-Object {
+            Write-Host "Deleting artifact: $($_.name) (ID: $($_.id))"
+            gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($_.id)
+          }
       shell: pwsh
