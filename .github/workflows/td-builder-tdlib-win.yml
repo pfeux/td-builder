@@ -231,7 +231,7 @@ jobs:
         docker build -t ghcr.io/${{ github.actor }}/tdlib-win:latest .
 
         echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-        docker push ghcr.io/${{ github.actor }}/tdlib-win:latest .
+        docker push ghcr.io/${{ github.actor }}/tdlib-win:latest
       shell: pwsh
 
   clean_artifacts:
