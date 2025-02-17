@@ -247,3 +247,5 @@ jobs:
             gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($_.id)
           }
       shell: pwsh
+      env: 
+        GH_TOKEN: ${{ secrets.TOKEN }}
