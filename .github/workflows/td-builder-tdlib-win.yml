@@ -72,7 +72,7 @@ jobs:
     steps:
     
     - name: Download Image Artifact
-      uses: actions/download-artifact@4.1.8
+      uses: actions/download-artifact@v4.1.8
       with:
         name: vstools-image
     
@@ -189,25 +189,25 @@ jobs:
     steps:
 
     - name: Download release x64
-      uses: actions/download-artifact@4.1.8
+      uses: actions/download-artifact@v4.1.8
       with:
         name: build-release-x64
         path: ${{ github.workspace }}/tdlib/x64/Release
 
     - name: Download debug x64
-      uses: actions/download-artifact@4.1.8
+      uses: actions/download-artifact@v4.1.8
       with:
         name: build-debug-x64
         path: ${{ github.workspace }}/tdlib/x64/Debug
 
     - name: Download release x86
-      uses: actions/download-artifact@4.1.8
+      uses: actions/download-artifact@v4.1.8
       with:
         name: build-release-x86
         path: ${{ github.workspace }}/tdlib/x86/Release
 
     - name: Download debug x86
-      uses: actions/download-artifact@4.1.8
+      uses: actions/download-artifact@v4.1.8
       with:
         name: build-debug-x86
         path: ${{ github.workspace }}/tdlib/x86/Debug
@@ -239,13 +239,33 @@ jobs:
     needs: [final_step]
     steps:
 
+    - name: Wait for Artifacts
+      shell: pwsh
+      run: Start-Sleep -Seconds 10
+    
     - name: Clear all artifacts
       run: |
-        gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json |
-          ForEach-Object {
-            Write-Host "Deleting artifact: $($_.name) (ID: $($_.id))"
-            gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($_.id)
+        for ($i = 1; $i -le 5; i++){
+          $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json;
+
+          if ($ARTIFACTS.Count -gt 0) {
+            break
           }
+
+          Write-Host "Artifacts not found, retrying ($i/5)..."
+          Start-Sleep -Seconds 5
+        }
+
+        if ($ARTIFACTS.Count -eq 0){
+          Write-Host "No Artifacts found."
+          exit 0
+        }
+          
+        $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json;
+        foreach ($ARTIFACT in $ARTIFACTS.artifacts) {
+          gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($ARTIFACT.id)
+          Write-Host "Delete artifact: $($ARTIFACT.name) (ID: $($ARTIFACT.id))"
+        }
       shell: pwsh
       env: 
         GH_TOKEN: ${{ secrets.TOKEN }}
