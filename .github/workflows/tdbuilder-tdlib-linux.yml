@@ -45,6 +45,7 @@ jobs:
     - name: Build release
       run: |
         docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
+        apt update && apt upgrade -y
         clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
         cd /app/td
         git fetch
@@ -82,6 +83,7 @@ jobs:
     - name: Build debug
       run: |
         docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
+        apt update && apt upgrade -y
         clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
         cd /app/td
         git fetch
