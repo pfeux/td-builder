@@ -237,6 +237,8 @@ jobs:
   clean_artifacts:
     runs-on: windows-latest
     needs: [final_step]
+    permissions:
+      contents: write
     steps:
 
     - name: Wait for Artifacts

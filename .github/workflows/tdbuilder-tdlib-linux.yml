@@ -8,31 +8,177 @@ on:
 
 jobs:
 
-  build:
-
+  prepare:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.2
 
-    - name: Docker Login
-      uses: docker/login-action@v3.3.0
-      with:
-        registry: ghcr.io
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.TOKEN }}
+    - name: Setup Container
+      shell: bash
+      run: |
+        echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker pull ghcr.io/${{ github.actor }}/linuxtools:latest
+        docker save ghcr.io/${{ github.actor }}/linuxtools:latest -o linuxtools.tar
 
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v6.13.0
+    - name: Upload Image Artifact
+      uses: actions/upload-artifact@v4.6.0
       with:
-        context: .
-        file: Dockerfile.tdlib-linux
-        push: true
-        tags: ghcr.io/${{ github.actor }}/tdlib-linux:latest
+        name: linuxtools-image
+        path: linuxtools.tar
 
+  build_release:
+    runs-on: ubuntu-latest
+    needs: [prepare]
+
+    steps:
+    - name: Download Image Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: linuxtools-image
+
+    - name: Load Docker Image
+      run: docker load -i linuxtools.tar
+      shell: pwsh
+
+    - name: Build release
+      run: |
+        docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
+        clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
+        cd /app/td
+        git fetch
+        git pull
+        rm -rf build && mkdir build && cd build
+        CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Release -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-$clangVersion ..
+        cmake --build . --target install
+        "
+      shell: bash
+
+    - name: List folder
+      run: ls "${{ github.workspace }}"
+      shell: bash
+
+    - name: Publish the release build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-release
+        path: ${{ github.workspace }}/Release
+
+  build_debug:
+    runs-on: ubuntu-latest
+    needs: [prepare]
+
+    steps:
+    - name: Download Image Artifact
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: linuxtools-image
+
+    - name: Load Docker Image
+      run: docker load -i linuxtools.tar
+      shell: pwsh
+
+    - name: Build debug
+      run: |
+        docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
+        clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
+        cd /app/td
+        git fetch
+        git pull
+        rm -rf build && mkdir build && cd build
+        CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Debug -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-$clangVersion ..
+        cmake --build . --target install
+        "
+      shell: bash
+
+    - name: List folder
+      run: ls "${{ github.workspace }}"
+      shell: bash
+
+    - name: Publish the debug build
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build-debug
+        path: ${{ github.workspace }}/Debug
+
+  final_step:
+    runs-on: ubuntu-latest
+    needs: [build_release, build_debug]
+
+    steps:
+    - name: Download release
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: build-release
+        path: ${{ github.workspace }}/tdlib/Release
+
+    - name: Download debug
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: build-debug
+        path: ${{ github.workspace }}/tdlib/Debug
+
+    - name: List folder
+      run: ls ${{ github.workspace }}
+      shell: bash
+
+    - name: Create docker
+      run: |
+        $dockerfileContent = @"
+        FROM alpine
+        WORKDIR /app
+        COPY ./tdlib ./tdlib
+        "@
+
+        $dockerfilePath = "${{ github.workspace }}/Dockerfile"
+        echo "$dockerfileContent" > "$dockerfilePath"
+
+        docker build -t ghcr.io/${{ github.actor }}/tdlib-linux:latest .
+
+        echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.actor }}/tdlib-linux:latest
+      shell: pwsh
+      
+
+  clean_artifacts:
+    runs-on: ubuntu-latest
+    needs: [final_step]
+    permissions:
+      contents: write
+
+    steps:
+    - name: Wait for Artifacts
+      shell: bash
+      run: sleep 10
+
+    - name: Clear all artifacts
+      run: |
+        for i in {1..5}; do
+          ARTIFACTS=$(gh api repos/${{ github.repository }}/actions/artifacts | jq -r '.artifacts')
+          
+          if [ -n "$ARTIFACTS" ] && [ "$ARTIFACTS" != "[]" ]; then
+            break
+          fi
+
+          echo "Artifacts not found, retrying ($i/5)..."
+          sleep 5
+        done
+
+        if [ -z "$ARTIFACTS" ] || [ "$ARTIFACTS" == "[]" ]; then
+          echo "No Artifacts found."
+          exit 0
+        fi
+          
+        ARTIFACT_IDS=$(echo "$ARTIFACTS" | jq -r '.[].id')
+        for ID in $ARTIFACT_IDS; do
+          gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$ID
+          echo "Deleted artifact with ID: $ID"
+        done
+      shell: bash
+      env: 
+        GH_TOKEN: ${{ secrets.TOKEN }}
+    
     - name: Commit code
       shell: bash
       run: |
