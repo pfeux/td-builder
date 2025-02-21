@@ -150,6 +150,10 @@ jobs:
       contents: write
 
     steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4.2.2
+
     - name: Wait for Artifacts
       shell: bash
       run: sleep 10
