@@ -46,7 +46,7 @@ jobs:
       run: |
         docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
         apt update && apt upgrade -y
-        clangVersion=\$(clang --version | awk 'NR==1 {split($4, a, \".\"); print a[1]}')
+        clangVersion=\$(clang --version | awk 'NR==1 {split(\$4, a, \".\"); print a[1]}')
         echo \$clangVersion
         cd /app/td
         git fetch
