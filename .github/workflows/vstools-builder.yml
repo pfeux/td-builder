@@ -24,6 +24,8 @@ jobs:
     - name: Commit code
       shell: bash
       run: |
+        git fetch
+        git pull
         echo "$(date -u)" >> vstools.log
         git config --global user.name "Kishan"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
