@@ -46,13 +46,13 @@ jobs:
       run: |
         docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
         apt update && apt upgrade -y
-        clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
-        echo $clangVersion
+        clangVersion=\$(clang --version | awk 'NR==1 {split($4, a, \".\"); print a[1]}')
+        echo \$clangVersion
         cd /app/td
         git fetch
         git pull
         rm -rf build_release && mkdir build_release && cd build_release
-        CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Release -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-$clangVersion ..
+        CXXFLAGS=\"-stdlib=libc++\" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Release -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-\$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-\$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-\$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-\$clangVersion ..
         cmake --build . --target install
         "
       shell: bash
@@ -85,13 +85,13 @@ jobs:
       run: |
         docker run --rm -v "${{ github.workspace }}:/app/td/tdlib" ghcr.io/${{ github.actor }}/linuxtools:latest bash -c "
         apt update && apt upgrade -y
-        clangVersion=$(clang --version | awk 'NR==1 {split($4, a, "."); print a[1]}')
-        echo $clangVersion
+        clangVersion=\$(clang --version | awk 'NR==1 {split(\$4, a, \".\"); print a[1]}')
+        echo \$clangVersion
         cd /app/td
         git fetch
         git pull
         rm -rf build_debug && mkdir build_debug && cd build_debug
-        CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Debug -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-$clangVersion ..
+        CXXFLAGS=\"-stdlib=libc++\" CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/Debug -DTD_ENABLE_LTO=ON -DCMAKE_AR=/usr/bin/llvm-ar-\$clangVersion -DCMAKE_NM=/usr/bin/llvm-nm-\$clangVersion -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump-\$clangVersion -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-\$clangVersion ..
         cmake --build . --target install
         "
       shell: bash
