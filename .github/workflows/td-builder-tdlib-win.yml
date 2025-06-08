@@ -287,3 +287,20 @@ jobs:
         git push origin HEAD
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+    - name: Delete tdlib-win older packages
+      run: |
+        $owner = "pfeux"
+        $package = "tdlib-win"
+        
+        $versions = gh api users/$owner/packages/container/$package/versions --paginate | ConvertFrom-Json
+        $sorted = $versions | Sort-Object -Property created_at -Descending
+        $toDelete = $sorted | Select-Object -Skip 3
+        foreach ($version in $toDelete) {
+          $id = $version.id
+          Write-Host "Deleting version Id: $id"
+          gh api --method DELETE "users/$owner/packages/container/$package/versions/$id"
+        }
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.TOKEN }}

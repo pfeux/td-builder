@@ -20,7 +20,7 @@ jobs:
         docker build -t ghcr.io/pfeux/linuxtools:latest -f Dockerfile.linuxtools .
         echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u pfeux --password-stdin
         docker push ghcr.io/pfeux/linuxtools:latest
-  
+
     - name: Commit code
       shell: bash
       run: |
@@ -34,3 +34,20 @@ jobs:
         git push origin HEAD
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+  
+    - name: Delete linuxtools older packages
+      run: |
+        owner="pfeux"
+        package="linuxtools"
+        
+        versions=$(gh api "users/$owner/packages/container/$package/versions" --paginate)
+        to_delete=$(echo "$versions" | jq -r 'sort_by(.created_at) | reverse | .[3:] | .[].id')
+
+        for id in $to_delete; do
+          echo "Deleting version ID: $id"
+          gh api --method DELETE "users/$owner/packages/container/$package/versions/$id"
+        done
+
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.TOKEN }}
