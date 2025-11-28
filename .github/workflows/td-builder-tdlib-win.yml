@@ -1,8 +1,8 @@
 name: tdbuilder for tdlib for windows
 
 on:
-  schedule:
-    - cron: '0 2 * * 5'
+  # schedule:
+  #  - cron: '0 2 * * 5'
 
   workflow_dispatch:
 
