@@ -24,18 +24,19 @@ jobs:
 
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
         run: |
-          docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+          $script = @'
           cd /app/td;
           git fetch;
           git pull;
-          $buildDir = 'build-${{ matrix.config }}-${{ matrix.platform }}';
+          $buildDir = "build-${{ matrix.config }}-${{ matrix.platform }}";
           Remove-Item -LiteralPath $buildDir -Force -Recurse -ErrorAction SilentlyContinue;
           New-Item -ItemType Directory -Path $buildDir;
           cd $buildDir;
-          $arch = if ('${{ matrix.platform }}' -eq 'x64') { 'x64' } else { 'Win32' };
+          $arch = if ("${{ matrix.platform }}" -eq "x64") { "x64" } else { "Win32" };
           cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
           cmake --build . --target install --config ${{ matrix.config }};
-          "
+          '@
+          docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -Command $script
         shell: pwsh
 
       - name: Publish ${{ matrix.platform }} ${{ matrix.config }} build
