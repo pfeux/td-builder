@@ -24,11 +24,11 @@ jobs:
 
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
         run: |
-          docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+          docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
           cd /app/td;
           git fetch;
           git pull;
-          $buildDir = \"build-${{ matrix.config }}-${{ matrix.platform }}\";
+          $buildDir = 'build-${{ matrix.config }}-${{ matrix.platform }}'';
           Remove-Item -LiteralPath $buildDir -Force -Recurse -ErrorAction SilentlyContinue;
           New-Item -ItemType Directory -Path $buildDir;
           cd $buildDir;
