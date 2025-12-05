@@ -18,13 +18,21 @@ jobs:
         with: 
             submodules: recursive
 
+      - name: Clone tdlib/td repository
+        run: |
+          git clone --depth 1 https://github.com/tdlib/td.git
+        shell: pwsh
+      
       - name: Setup vcpkg
         uses: lukka/run-vcpkg
+        with:
+            vcpkgDirectory: ${{ runner.tool-cache }}/vcpkg
 
       - name: Install dependencies
         run: |
-            vcpkg install openssl zlib gperf --triplet x64-windows
-            vcpkg install openssl zlib gperf --triplet x86-windows
+            $vcpkg = "${{ runner.tool-cache }}/vcpkg/vcpkg.exe"
+            & $vcpkg install openssl zlib gperf --triplet x64-windows
+            & $vcpkg install openssl zlib gperf --triplet x86-windows
         shell: pwsh
 
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
@@ -38,7 +46,7 @@ jobs:
           New-Item -ItemType Directory -Path $buildDir;
           cd $buildDir;
           $arch = if ("${{ matrix.platform }}" -eq "x64") { "x64" } else { "Win32" };
-          cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+          cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE="${{ runner.tool-cache }}/vcpkg/scripts/buildsystems/vcpkg.cmake" ..;
           cmake --build . --target install --config ${{ matrix.config }};
           '@
           docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -Command $script
