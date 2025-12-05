@@ -1,4 +1,4 @@
-name: tdbuilder for tdlib for windows v2
+# name: tdbuilder for tdlib for windows v2
 
 on:
   # schedule:
@@ -12,6 +12,7 @@ jobs:
       matrix:
         platform: [x64, x86]
         config: [Release, Debug]
+        
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -167,4 +168,5 @@ jobs:
           }
         shell: pwsh
         env:
+
           GH_TOKEN: ${{ secrets.TOKEN }}
