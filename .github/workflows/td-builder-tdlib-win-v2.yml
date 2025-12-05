@@ -1,0 +1,156 @@
+name: tdbuilder for tdlib for windows v2
+
+on:
+  # schedule:
+  #   - cron: '0 2 * * 5'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [x64, x86]
+        config: [Release, Debug]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Pull vstools image
+        run: |
+          echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/${{ github.actor }}/vstools:latest
+        shell: pwsh
+
+      - name: Build ${{ matrix.platform }} ${{ matrix.config }}
+        run: |
+          docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib\" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -c "
+          cd /app/td;
+          git fetch;
+          git pull;
+          $buildDir = \"build-${{ matrix.config }}-${{ matrix.platform }}\";
+          Remove-Item -LiteralPath $buildDir -Force -Recurse -ErrorAction SilentlyContinue;
+          New-Item -ItemType Directory -Path $buildDir;
+          cd $buildDir;
+          $arch = if ('${{ matrix.platform }}' -eq 'x64') { 'x64' } else { 'Win32' };
+          cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
+          cmake --build . --target install --config ${{ matrix.config }};
+          "
+        shell: pwsh
+
+      - name: Publish ${{ matrix.platform }} ${{ matrix.config }} build
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: build-${{ matrix.config }}-${{ matrix.platform }}
+          path: ${{ github.workspace }}/${{ matrix.platform }}/${{ matrix.config }}
+
+  final_step:
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Download release x64
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: build-Release-x64
+          path: ${{ github.workspace }}/tdlib/x64/Release
+
+      - name: Download debug x64
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: build-Debug-x64
+          path: ${{ github.workspace }}/tdlib/x64/Debug
+
+      - name: Download release x86
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: build-Release-x86
+          path: ${{ github.workspace }}/tdlib/x86/Release
+
+      - name: Download debug x86
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: build-Debug-x86
+          path: ${{ github.workspace }}/tdlib/x86/Debug
+
+      - name: Create docker
+        run: |
+          $dockerfileContent = @"
+          FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
+          WORKDIR /app
+          COPY ./tdlib ./tdlib
+          "@
+
+          $dockerfilePath = "${{ github.workspace }}/Dockerfile"
+          $dockerfileContent | Out-File -FilePath $dockerfilePath
+
+          docker build -t ghcr.io/${{ github.actor }}/tdlib-win:latest .
+
+          echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.actor }}/tdlib-win:latest
+        shell: pwsh
+
+  clean_artifacts:
+    runs-on: windows-latest
+    needs: final_step
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Wait for Artifacts
+        shell: pwsh
+        run: Start-Sleep -Seconds 10
+    
+      - name: Clear all artifacts
+        run: |
+          for ($i = 1; $i -le 5; $i++){
+            $ARTIFACTS = gh api repos/${{ github.repository }}/actions/artifacts | ConvertFrom-Json;
+            if ($ARTIFACTS.Count -gt 0) { break }
+            Write-Host "Artifacts not found, retrying ($i/5)..."
+            Start-Sleep -Seconds 5
+          }
+          if ($ARTIFACTS.Count -eq 0){
+            Write-Host "No Artifacts found."
+            exit 0
+          }
+          foreach ($ARTIFACT in $ARTIFACTS.artifacts) {
+            gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$($ARTIFACT.id)
+            Write-Host "Delete artifact: $($ARTIFACT.name) (ID: $($ARTIFACT.id))"
+          }
+        shell: pwsh
+        env: 
+          GH_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Commit code
+        shell: bash
+        run: |
+          git fetch
+          git pull
+          echo "$(date -u)" > tdlib-win.log
+          git config --global user.name "Kishan"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add tdlib-win.log
+          git commit -m "Update tdlib-win.log" || echo "no change to commit"
+          git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Delete tdlib-win older packages
+        run: |
+          $owner = "pfeux"
+          $package = "tdlib-win"
+          $versions = gh api users/$owner/packages/container/$package/versions --paginate | ConvertFrom-Json
+          $sorted = $versions | Sort-Object -Property created_at -Descending
+          $toDelete = $sorted | Select-Object -Skip 3
+          foreach ($version in $toDelete) {
+            $id = $version.id
+            Write-Host "Deleting version Id: $id"
+            gh api --method DELETE "users/$owner/packages/container/$package/versions/$id"
+          }
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
