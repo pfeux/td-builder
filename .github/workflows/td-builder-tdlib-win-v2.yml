@@ -21,25 +21,24 @@ jobs:
 
       - name: Clone tdlib/td repository
         run: |
-          git clone --depth 1 https://github.com/tdlib/td.git
+          git clone --depth 1 https://github.com/tdlib/td.git ${{ github.workspace }}
         shell: pwsh
       
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-            vcpkgDirectory: ${{ runner.tool-cache }}/vcpkg
+            vcpkgDirectory: ${{ github.workspace }}/td/vcpkg
 
       - name: Install dependencies
         run: |
-            $vcpkg = "${{ runner.tool-cache }}/vcpkg/vcpkg.exe"
-            & $vcpkg install openssl zlib gperf --triplet x64-windows
-            & $vcpkg install openssl zlib gperf --triplet x86-windows
+            Start-Process -Wait -NoNewWindow -PassThru -FilePath ${{ github.workspace }}/td/vcpkg/bootstrap-vcpkg.bat; `
+            Start-Process -Wait -NoNewWindow -PassThru -FilePath ${{ github.workspace }}/td/vcpkg/vcpkg.exe -ArgumentList 'install', 'gperf:x64-windows', 'openssl:x64-windows', 'zlib:x64-windows', 'gperf:x86-windows', 'openssl:x86-windows', 'zlib:x86-windows';
         shell: pwsh
 
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
         run: |
           $script = @'
-          cd /app/td;
+          cd ${{ github.workspace }}/td;
           git fetch;
           git pull;
           $buildDir = "build-${{ matrix.config }}-${{ matrix.platform }}";
@@ -47,7 +46,7 @@ jobs:
           New-Item -ItemType Directory -Path $buildDir;
           cd $buildDir;
           $arch = if ("${{ matrix.platform }}" -eq "x64") { "x64" } else { "Win32" };
-          cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE="${{ runner.tool-cache }}/vcpkg/scripts/buildsystems/vcpkg.cmake" ..;
+          cmake -A $arch -DCMAKE_INSTALL_PREFIX:PATH=../tdlib/${{ matrix.platform }}/${{ matrix.config }} -DTD_ENABLE_DOTNET=ON -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..;
           cmake --build . --target install --config ${{ matrix.config }};
           '@
           docker run --rm -v "${{ github.workspace }}:C:\app\td\tdlib" ghcr.io/${{ github.actor }}/vstools:latest powershell.exe -Command $script
