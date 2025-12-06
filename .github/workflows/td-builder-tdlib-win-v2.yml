@@ -1,6 +1,5 @@
-# name: tdbuilder for tdlib for windows v2
-
 name: new tdbuilder for tdlib for windows
+
 on:
   # schedule:
   #   - cron: '0 2 * * 5'
@@ -26,7 +25,7 @@ jobs:
         shell: pwsh
       
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg
+        uses: lukka/run-vcpkg@v11
         with:
             vcpkgDirectory: ${{ runner.tool-cache }}/vcpkg
 
