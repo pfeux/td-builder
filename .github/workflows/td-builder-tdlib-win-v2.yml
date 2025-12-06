@@ -1,5 +1,6 @@
 # name: tdbuilder for tdlib for windows v2
 
+name: new tdbuilder for tdlib for windows
 on:
   # schedule:
   #   - cron: '0 2 * * 5'
@@ -170,3 +171,4 @@ jobs:
         env:
 
           GH_TOKEN: ${{ secrets.TOKEN }}
+
