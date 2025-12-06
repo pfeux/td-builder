@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4.6.0
         with:
           name: build-${{ matrix.config }}-${{ matrix.platform }}
-          path: ${{ github.workspace }}/${{ matrix.platform }}/${{ matrix.config }}
+          path: ${{ github.workspace }}/td/tdlib/${{ matrix.platform }}/${{ matrix.config }}/**
 
   final_step:
     runs-on: windows-latest
@@ -74,32 +74,32 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           name: build-Release-x64
-          path: ${{ github.workspace }}/tdlib/x64/Release
+          path: ${{ github.workspace }}/td/tdlib/x64/Release
 
       - name: Download debug x64
         uses: actions/download-artifact@v4.1.8
         with:
           name: build-Debug-x64
-          path: ${{ github.workspace }}/tdlib/x64/Debug
+          path: ${{ github.workspace }}/td/tdlib/x64/Debug
 
       - name: Download release x86
         uses: actions/download-artifact@v4.1.8
         with:
           name: build-Release-x86
-          path: ${{ github.workspace }}/tdlib/x86/Release
+          path: ${{ github.workspace }}/td/tdlib/x86/Release
 
       - name: Download debug x86
         uses: actions/download-artifact@v4.1.8
         with:
           name: build-Debug-x86
-          path: ${{ github.workspace }}/tdlib/x86/Debug
+          path: ${{ github.workspace }}/td/tdlib/x86/Debug
 
       - name: Create docker
         run: |
           $dockerfileContent = @"
           FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
           WORKDIR /app
-          COPY ./tdlib ./tdlib
+          COPY ./td/tdlib ./tdlib
           "@
 
           $dockerfilePath = "${{ github.workspace }}/Dockerfile"
