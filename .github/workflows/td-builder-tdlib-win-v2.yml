@@ -1,8 +1,8 @@
 name: tdbuilder for tdlib for windows v2
 
 on:
-  # schedule:
-  #   - cron: '0 2 * * 5'
+  schedule:
+    - cron: '0 2 * * 5'
   workflow_dispatch:
 
 jobs:
@@ -172,6 +172,5 @@ jobs:
           }
         shell: pwsh
         env:
-
           GH_TOKEN: ${{ secrets.TOKEN }}
 
