@@ -15,24 +15,26 @@ jobs:
         
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
-        with: 
-            submodules: recursive
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Clone tdlib/td repository
-        run: |
-          git clone --depth 1 https://github.com/tdlib/td.git ${{ github.workspace }}
+        run: git clone --depth 1 https://github.com/tdlib/td.git ${{ github.workspace }}/td
         shell: pwsh
-      
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-            vcpkgDirectory: ${{ github.workspace }}/td/vcpkg
 
-      - name: Install dependencies
+      - name: Bootstrap vcpkg inside td/
         run: |
-            Start-Process -Wait -NoNewWindow -PassThru -FilePath ${{ github.workspace }}/td/vcpkg/bootstrap-vcpkg.bat; `
-            Start-Process -Wait -NoNewWindow -PassThru -FilePath ${{ github.workspace }}/td/vcpkg/vcpkg.exe -ArgumentList 'install', 'gperf:x64-windows', 'openssl:x64-windows', 'zlib:x64-windows', 'gperf:x86-windows', 'openssl:x86-windows', 'zlib:x86-windows';
+          Set-Location ${{ github.workspace }}/td
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+        shell: pwsh
+
+      - name: Install dependencies via vcpkg
+        run: |
+          Set-Location ${{ github.workspace }}/td
+          .\vcpkg\vcpkg.exe install openssl zlib gperf --triplet x64-windows
+          .\vcpkg\vcpkg.exe install openssl zlib gperf --triplet x86-windows
         shell: pwsh
 
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
