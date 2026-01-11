@@ -2,7 +2,7 @@ name: tdbuilder for tdlib for linux
 
 on:
   schedule:
-    - cron: '0 2 * * 4'
+    - cron: '0 2 2 * *'
     
   workflow_dispatch:
 
