@@ -31,7 +31,7 @@ jobs:
         context: .
         file: Dockerfile.tdserver
         push: true
-        tags: ghcr.io/${{ github.actor }}/tdbuilder-tdserver:latest
+        tags: ghcr.io/pfeux/tdbuilder-tdserver:latest
 
     - name: Commit code
       shell: bash
