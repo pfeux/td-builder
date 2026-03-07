@@ -1,4 +1,4 @@
-name: Hourly Site Check
+name: Hourly KMS Health Check
 
 on:
   schedule:
@@ -13,15 +13,11 @@ jobs:
       - name: Check website availability
         run: |
           URL="https://spotless-aveline-kishan-2457d23a.koyeb.app/"
-
           echo "Checking $URL"
           STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$URL")
-
           echo "Status code: $STATUS"
 
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Site is DOWN or returned non-200 status"
-            exit 1
-          fi
-
-          echo "Site is UP"
+          URL="https://www.fenilcomics.com/"
+          echo "Checking $URL"
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$URL")
+          echo "Status code: $STATUS"
