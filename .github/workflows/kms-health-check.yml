@@ -1,8 +1,8 @@
 name: Hourly KMS Health Check
 
 on:
-  schedule:
-    - cron: "0 * * * *"   # Runs every hour at minute 0
+  # schedule:
+  #   - cron: "0 * * * *"   # Runs every hour at minute 0
   workflow_dispatch:       # Allows manual trigger
 
 jobs:
