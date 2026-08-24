@@ -20,13 +20,18 @@ jobs:
           submodules: recursive
 
       - name: Clone tdlib/td repository
-        run: git clone --depth 1 https://github.com/tdlib/td.git ${{ github.workspace }}/td
+        run: git clone https://github.com/tdlib/td.git ${{ github.workspace }}/td
         shell: pwsh
 
       - name: Bootstrap vcpkg inside td/
         run: |
           Set-Location ${{ github.workspace }}/td
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git
+          
+          git clone https://github.com/microsoft/vcpkg.git
+          Set-Location ${{ github.workspace }}/td/vcpkg
+          git checkout bc3512a509f9d29b37346a7e7e929f9a26e66c7e
+          
+          Set-Location ${{ github.workspace }}/td
           .\vcpkg\bootstrap-vcpkg.bat
         shell: pwsh
 
