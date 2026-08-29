@@ -29,7 +29,6 @@ jobs:
           
           git clone https://github.com/microsoft/vcpkg.git
           Set-Location ${{ github.workspace }}/td/vcpkg
-          git checkout bc3512a509f9d29b37346a7e7e929f9a26e66c7e
           
           Set-Location ${{ github.workspace }}/td
           .\vcpkg\bootstrap-vcpkg.bat
