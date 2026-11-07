@@ -1,0 +1,21 @@
+--- a/td/generate/tl_writer_dotnet.h
++++ b/td/generate/tl_writer_dotnet.h
+@@ -278,7 +278,17 @@
+       ss << "  }\n";
+       return ss.str();
+     }
+-    return "  property " + type_name + " " + fixed_field_name + ";\n";
++    // Qualify API types even inside arrays: another property can hide the type name.
++    auto fixed_type_name = type_name;
++    std::size_t pos = 0;
++    while (fixed_type_name.substr(pos, 6) == "Array<") {
++      pos += 6;
++    }
++    if (fixed_type_name.substr(pos, 4) != "BYTE" && fixed_type_name.substr(pos, 6) != "String" &&
++        to_upper(fixed_type_name[pos]) == fixed_type_name[pos]) {
++      fixed_type_name.insert(pos, "::Telegram::Td::Api::");
++    }
++    return "  property " + fixed_type_name + " " + fixed_field_name + ";\n";
+   }
+ 
+   std::string gen_store_function_begin(const std::string &storer_name, const std::string &class_name, int arity,

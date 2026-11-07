@@ -23,6 +23,20 @@ jobs:
         run: git clone https://github.com/tdlib/td.git ${{ github.workspace }}/td
         shell: pwsh
 
+      - name: Patch TDLib .NET property type qualification
+        shell: pwsh
+        run: |
+          Set-Location "${{ github.workspace }}/td"
+          $patch = "${{ github.workspace }}/patches/tdlib-dotnet-property-types.patch"
+          git apply --check $patch
+          if ($LASTEXITCODE -ne 0) {
+            throw "TDLib .NET generator has changed; review the property type qualification patch."
+          }
+          git apply $patch
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to patch the TDLib .NET generator."
+          }
+
       - name: Bootstrap vcpkg inside td/
         run: |
           Set-Location ${{ github.workspace }}/td
@@ -41,31 +55,6 @@ jobs:
           .\vcpkg\vcpkg.exe install openssl zlib gperf --triplet x86-windows
         shell: pwsh
         
-      - name: Patch TDLib .NET Message type collision
-        shell: pwsh
-        run: |
-         Set-Location "${{ github.workspace }}/td"
-
-         $file = "td/generate/auto/td/telegram/TdDotNetApi.h"
-
-         if (-not (Test-Path $file)) {
-           Write-Host "Generated header not available yet."
-           exit 0
-         }
-
-         $lines = Get-Content $file
-
-         $matches = Select-String -Path $file -Pattern "UpdateNewGuestQuery"
-
-         foreach ($match in $matches) {
-           $start = [Math]::Max(0, $match.LineNumber - 5)
-           $end = [Math]::Min($lines.Length - 1, $match.LineNumber + 45)
-
-           for ($i = $start; $i -le $end; $i++) {
-             Write-Host "$($i + 1): $($lines[$i])"
-           }
-         }
-         
       - name: Build ${{ matrix.platform }} ${{ matrix.config }}
         run: |
           Set-Location ${{ github.workspace }}/td
